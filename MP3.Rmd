@@ -1,6 +1,6 @@
 ---
 title: "SDS/CSC 293 Mini-Project 3: Multiple Regression"
-author: "Group XX: WRITE YOUR NAMES HERE"
+author: "Group 23: Nashshaba & Audrey"
 date: "Wednesday, March 27^th^, 2019"
 output:
   html_document:
@@ -93,17 +93,50 @@ As much as possible, try to do all your data wrangling here:
 
 Fit a logistic regression model $\widehat{f}_1$ with only an intercept term on all the training data. In other words, your model will not use any predictor variables. Save this in `model_1`. What is the uniquely fitted probability?
 
+The fited probability is 0.8476823.
 ```{r}
+# Fit a logistic regression model. Note the use of glm() instead of lm()
+model_1 <- glm(project_is_approved ~ 1, family = "binomial", data = training)
 
+# 2.b) Extract point-by-point info of points used to fit model
+fitted_points_logistic_1 <- model_1 %>%
+  broom::augment()
+fitted_points_logistic_1
 ```
+
+```{r}
+# The .fitted values are the fitted log-odds however, NOT fitted probabilities.
+# We convert to fitted probabilities using inverse-logit function:
+fitted_points_logistic_1 <- fitted_points_logistic_1 %>%
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+       #y_hat = ifelse(fitted_prob>0.5, 1, 0))  #we don't need to set a threshold because we will fit it to all different thresholds in this case
+fitted_points_logistic_1
+
+# 2.c) Extract model summary info
+model_1 %>%
+  broom::glance()
+```
+
 
 
 ## Estimate of your Kaggle score
 
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with no predictor variables, we are in very little danger of overfitting the model. 
 
-```{r}
 
+```{r}
+#transform the truth to factor and with level ordered
+truth_levels<-c(1, 0)
+
+fitted_points_logistic_1<-fitted_points_logistic_1%>%
+  mutate(project_is_approved = factor(project_is_approved, levels = truth_levels))
+
+#computing AUC
+roc_auc(fitted_points_logistic_1, project_is_approved,
+        predicted = fitted_prob)
+
+#visualize the ROC plot
+autoplot(roc_curve(fitted_points_logistic_1, project_is_approved, fitted_prob))
 ```
 
 
@@ -112,7 +145,11 @@ Use the `yardstick` package to get an estimate of your Kaggle score: the area un
 Apply your `model_1` fitted model to the test data. What is the uniquely predicted probability?
 
 ```{r}
-
+predicted_points_logistic_1 <- model_1 %>%
+  broom::augment(newdata = test)
+predicted_points_logistic_1 <- predicted_points_logistic_1%>%
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+predicted_points_logistic_1
 ```
 
 
@@ -120,7 +157,7 @@ Apply your `model_1` fitted model to the test data. What is the uniquely predict
 
 ```{r}
 sample_submission %>% 
-  mutate(project_is_approved = 0.848) %>% 
+  mutate(project_is_approved = predicted_points_logistic_1$fitted_prob) %>% 
   write_csv(path = "data/submission_model_1.csv")
 ```
 
