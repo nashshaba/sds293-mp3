@@ -78,7 +78,13 @@ glimpse(sample_submission)
 As much as possible, try to do all your data wrangling here:
 
 ```{r}
+training <- training %>%
+  select(id,teacher_number_of_previously_posted_projects,project_grade_category,project_is_approved)
 
+test <- test %>%
+  select(id,teacher_number_of_previously_posted_projects,project_grade_category)
+
+  
 ```
 
 
