@@ -78,7 +78,11 @@ glimpse(sample_submission)
 As much as possible, try to do all your data wrangling here:
 
 ```{r}
+training <- training %>%
+  select(id,teacher_number_of_previously_posted_projects,project_grade_category,project_is_approved)
 
+test <- test %>%
+  select(id,teacher_number_of_previously_posted_projects,project_grade_category)
 ```
 
 
@@ -156,7 +160,7 @@ predicted_points_logistic_1
 ## Create your submission CSV
 
 ```{r}
-sample_submission %>% 
+submission_mvp<- sample_submission %>% 
   mutate(project_is_approved = predicted_points_logistic_1$fitted_prob) %>% 
   write_csv(path = "data/submission_model_1.csv")
 ```
@@ -182,6 +186,8 @@ Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
 
+
+
 ```
 
 
@@ -203,7 +209,28 @@ Fit a logistic regression model $\widehat{f}_2$ using a single numerical predict
 at the same time.
 
 ```{r}
+# Fit a logistic regression model with the numerical variable "teacher_number_of_previously_posted_projects"
 
+model_2_formula <- as.formula("project_is_approved ~ teacher_number_of_previously_posted_projects")
+model_2 <- glm(model_2_formula, family = "binomial", data = training)
+
+# Extract point-by-point info of points used to fit model
+fitted_points_2 <- model_2 %>%
+  broom::augment()
+
+
+# The .fitted values are the fitted log-odds however, NOT fitted probabilities.
+# We convert to fitted probabilities using inverse-logit function:
+fitted_points_2 <- fitted_points_2 %>%
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+fitted_points_2
+
+# Extract model summary info
+model_2 %>%
+  broom::glance()
+
+fitted_points_2<-fitted_points_2%>%
+  mutate(project_is_approved = factor(project_is_approved, levels = truth_levels))
 ```
 
 
@@ -212,7 +239,9 @@ at the same time.
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with only 1 predictor variable and so many points, we are in very little danger of overfitting the model. 
 
 ```{r}
-
+#computing AUC
+roc_auc(fitted_points_2, project_is_approved,
+        predicted = fitted_prob)
 ```
 
 
@@ -221,7 +250,11 @@ Use the `yardstick` package to get an estimate of your Kaggle score: the area un
 Apply your `model_2` fitted model to the test data and display a histogram of the predicted probabilities.
 
 ```{r}
-
+predicted_points_2 <- model_2 %>%
+  broom::augment(newdata = test)
+predicted_points_2 <- predicted_points_2%>%
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+predicted_points_2
 ```
 
 
@@ -229,7 +262,7 @@ Apply your `model_2` fitted model to the test data and display a histogram of th
 
 ```{r}
 sample_submission %>% 
-  mutate(project_is_approved = 0.848) %>% 
+  mutate(project_is_approved = predicted_points_2$fitted_prob) %>% 
   write_csv(path = "data/submission_model_2.csv")
 ```
 
@@ -238,7 +271,7 @@ sample_submission %>%
 
 Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.5.
 
-![](score_screenshot_albert_mvp.png){ width=100% }
+![](score_screenshot_rfts.png){ width=100% }
 
 
 ## Plot ROC curve
@@ -246,7 +279,8 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-
+#visualize the ROC plot
+autoplot(roc_curve(fitted_points_logistic_1, project_is_approved, fitted_prob))
 ```
 
 
