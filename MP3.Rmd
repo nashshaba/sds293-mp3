@@ -233,6 +233,24 @@ fitted_points_2<-fitted_points_2%>%
   mutate(project_is_approved = factor(project_is_approved, levels = truth_levels))
 ```
 
+```{r}
+plot_2 <-ggplot(NULL)+
+  # Training data with black points:
+  geom_jitter(data = fitted_points_2, aes(x = teacher_number_of_previously_posted_projects, y = project_is_approved),height = 0.01) +
+  # Best fitting logistic curve in red:
+   geom_hline(yintercept = 0.8476823, col = "blue", size = 1)+
+
+  
+  geom_line(data = fitted_points_2, mapping = aes(x = teacher_number_of_previously_posted_projects, y = fitted_prob), col = "red", size = 1) +
+theme(axis.title.y = element_blank(),
+        axis.ticks.x=element_blank()
+  
+)
+
+plot_2
+```
+
+
 
 ## Estimate of your Kaggle score
 
