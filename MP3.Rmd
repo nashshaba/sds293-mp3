@@ -139,8 +139,7 @@ fitted_points_logistic_1<-fitted_points_logistic_1%>%
 roc_auc(fitted_points_logistic_1, project_is_approved,
         predicted = fitted_prob)
 
-#visualize the ROC plot
-autoplot(roc_curve(fitted_points_logistic_1, project_is_approved, fitted_prob))
+
 ```
 
 
@@ -185,9 +184,8 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-
-
-
+#visualize the ROC plot
+autoplot(roc_curve(fitted_points_logistic_1, project_is_approved, fitted_prob))
 ```
 
 
@@ -234,18 +232,17 @@ fitted_points_2<-fitted_points_2%>%
 ```
 
 ```{r}
-plot_2 <-ggplot(NULL)+
+plot_2 <-ggplot()+
   # Training data with black points:
-  geom_jitter(data = fitted_points_2, aes(x = teacher_number_of_previously_posted_projects, y = project_is_approved),height = 0.01) +
+  geom_jitter(data = fitted_points_2, aes(x = teacher_number_of_previously_posted_projects, y = as.numeric(project_is_approved)-1),height = 0.01) +
   # Best fitting logistic curve in red:
    geom_hline(yintercept = 0.8476823, col = "blue", size = 1)+
 
   
   geom_line(data = fitted_points_2, mapping = aes(x = teacher_number_of_previously_posted_projects, y = fitted_prob), col = "red", size = 1) +
-theme(axis.title.y = element_blank(),
-        axis.ticks.x=element_blank()
-  
-)
+xlab("Number of previously posted applications by the submitting teacher") + ylab("Fitted probaility")+
+  labs(title="Fitted probabilities according to teacher_number_of_previously_posted_projects"
+       )
 
 plot_2
 ```
@@ -274,9 +271,16 @@ predicted_points_2 <- predicted_points_2%>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
 predicted_points_2
 ```
+Histogram of the predicted probabilities 
 
+```{r}
+#display a histogram of the predicted probabilities
+ggplot()+
+ geom_histogram(data = predicted_points_2, aes(x=fitted_prob), colour="black")+
+ labs(x = "Fitted Probability")+
+ ggtitle("Histogram of Fitted Probability")
 
-## Create your submission CSV
+```
 
 ```{r}
 sample_submission %>% 
@@ -298,7 +302,7 @@ Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
 #visualize the ROC plot
-autoplot(roc_curve(fitted_points_logistic_1, project_is_approved, fitted_prob))
+autoplot(roc_curve(fitted_points_2, project_is_approved, fitted_prob))
 ```
 
 
@@ -365,6 +369,16 @@ predicted_points_logistic_3 <- predicted_points_logistic_3%>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
 predicted_points_logistic_3
 ```
+Histogram of predicted probabilities for model 3
+
+```{r}
+#display a barplot of the predicted probabilities
+ggplot()+
+ geom_histogram(data = predicted_points_logistic_3, aes(x=fitted_prob), colour="black", binwidth=0.0025)+
+ labs(x = "Fitted Probability")+
+ ggtitle("Histogram of Fitted Probability")+
+  scale_x_discrete(limits=c(0.8352357,0.8434585,0.8471241,0.8539768),expand = c(0.001,0.001))
+```
 
 
 ## Create your submission CSV
@@ -401,7 +415,7 @@ at the same time.
 # the relationship between the fitted prob from model 3 and the categorical variable
 ggplot() +
   # Training data with black points:
-  geom_jitter(data = fitted_points_logistic_3, aes(x = project_grade_category, y = fitted_prob), height = 0.01) + labs(x = "Project Grade Category", y = "Fitted Probability")+
+  geom_boxplot(data = fitted_points_logistic_3, aes(x = project_grade_category, y = fitted_prob)) + labs(x = "School grade levels", y = "Fitted probability")+
          ggtitle("Fitted Probability according to Project Grade Category")+
   geom_hline(yintercept=0.8476823, color = "blue", size = 1)
 ```
