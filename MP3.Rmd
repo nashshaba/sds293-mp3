@@ -17,6 +17,7 @@ output:
 # Load all your packages here:
 library(tidyverse)
 library(yardstick)
+library(broom)
 
 # Set default behavior for all code chunks here:
 knitr::opts_chunk$set(
@@ -114,9 +115,6 @@ The fited probability is 0.8476823.
 fitted_points_logistic_1 <- fitted_points_logistic_1 %>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted)))  %>%
   select(project_is_approved, fitted_prob)
-       #y_hat = ifelse(fitted_prob>0.5, 1, 0))  #we don't need to set a threshold because we will fit it to all different thresholds in this case
-fitted_points_logistic_1
-
 ```
 
 
@@ -151,7 +149,6 @@ predicted_points_logistic_1 <- model_1 %>%
 predicted_points_logistic_1 <- predicted_points_logistic_1%>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
   select(fitted_prob)
-predicted_points_logistic_1
 ```
 
 
@@ -221,12 +218,10 @@ fitted_points_2 <- model_2 %>%
 fitted_points_2 <- fitted_points_2 %>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
   select(project_is_approved,teacher_number_of_previously_posted_projects,fitted_prob)
-fitted_points_2
+
 
 fitted_points_2<-fitted_points_2%>%
   mutate(project_is_approved = factor(project_is_approved, levels = truth_levels))
-
-
 ```
 
 ```{r}
@@ -239,8 +234,7 @@ plot_2 <-ggplot()+
   
   geom_line(data = fitted_points_2, mapping = aes(x = teacher_number_of_previously_posted_projects, y = fitted_prob), col = "red", size = 1) +
 xlab("Number of previously posted applications by the submitting teacher") + ylab("Fitted probaility")+
-  labs(title="Fitted probabilities according to teacher_number_of_previously_posted_projects"
-       )
+  labs(title="Fitted probabilities of y_hat using a numerical predictor")
 
 plot_2
 ```
@@ -268,7 +262,6 @@ predicted_points_2 <- model_2 %>%
 predicted_points_2 <- predicted_points_2%>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted)))%>%
   select(teacher_number_of_previously_posted_projects,fitted_prob)
-predicted_points_2
 ```
 Histogram of the predicted probabilities 
 
@@ -332,8 +325,6 @@ fitted_points_logistic_3 <- model_3 %>%
 fitted_points_logistic_3 <- fitted_points_logistic_3 %>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
   select(project_is_approved,project_grade_category,fitted_prob)
-       #y_hat = ifelse(fitted_prob>0.5, 1, 0))  #we don't need to set a threshold because we will fit it to all different thresholds in this case
-fitted_points_logistic_3
 ```
 
 
@@ -364,7 +355,6 @@ predicted_points_logistic_3 <- model_3 %>%
 predicted_points_logistic_3 <- predicted_points_logistic_3%>%
   mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
   select(project_grade_category,fitted_prob)
-predicted_points_logistic_3
 ```
 Histogram of predicted probabilities for model 3
 
@@ -413,6 +403,6 @@ at the same time.
 ggplot() +
   # Training data with black points:
   geom_boxplot(data = fitted_points_logistic_3, aes(x = project_grade_category, y = fitted_prob)) + labs(x = "School grade levels", y = "Fitted probability")+
-         ggtitle("Fitted Probability according to Project Grade Category")+
+         ggtitle("Fitted probabilities of y_hat using a categorical predictor")+
   geom_hline(yintercept=0.8476823, color = "blue", size = 1)
 ```
