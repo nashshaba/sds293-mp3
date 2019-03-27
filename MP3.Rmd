@@ -97,7 +97,7 @@ test <- test %>%
 
 Fit a logistic regression model $\widehat{f}_1$ with only an intercept term on all the training data. In other words, your model will not use any predictor variables. Save this in `model_1`. What is the uniquely fitted probability?
 
-The fited probability is 0.8476823.
+
 ```{r}
 # Fit a logistic regression model. Note the use of glm() instead of lm()
 model_1 <- glm(project_is_approved ~ 1, family = "binomial", data = training)
@@ -105,20 +105,18 @@ model_1 <- glm(project_is_approved ~ 1, family = "binomial", data = training)
 # 2.b) Extract point-by-point info of points used to fit model
 fitted_points_logistic_1 <- model_1 %>%
   broom::augment()
-fitted_points_logistic_1
 ```
+The fited probability is 0.8476823.
 
 ```{r}
 # The .fitted values are the fitted log-odds however, NOT fitted probabilities.
 # We convert to fitted probabilities using inverse-logit function:
 fitted_points_logistic_1 <- fitted_points_logistic_1 %>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+  mutate(fitted_prob = 1/(1 + exp(-.fitted)))  %>%
+  select(project_is_approved, fitted_prob)
        #y_hat = ifelse(fitted_prob>0.5, 1, 0))  #we don't need to set a threshold because we will fit it to all different thresholds in this case
 fitted_points_logistic_1
 
-# 2.c) Extract model summary info
-model_1 %>%
-  broom::glance()
 ```
 
 
@@ -151,7 +149,8 @@ Apply your `model_1` fitted model to the test data. What is the uniquely predict
 predicted_points_logistic_1 <- model_1 %>%
   broom::augment(newdata = test)
 predicted_points_logistic_1 <- predicted_points_logistic_1%>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
+  select(fitted_prob)
 predicted_points_logistic_1
 ```
 
@@ -171,7 +170,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 
 ![](score_screenshot_albert_mvp.png){ width=100% }
 
-
+The estimated AUC is 0.50. This is equal to the actual Kaggle score of 0.50.
 
 ***
 
@@ -220,15 +219,14 @@ fitted_points_2 <- model_2 %>%
 # The .fitted values are the fitted log-odds however, NOT fitted probabilities.
 # We convert to fitted probabilities using inverse-logit function:
 fitted_points_2 <- fitted_points_2 %>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
+  select(project_is_approved,teacher_number_of_previously_posted_projects,fitted_prob)
 fitted_points_2
-
-# Extract model summary info
-model_2 %>%
-  broom::glance()
 
 fitted_points_2<-fitted_points_2%>%
   mutate(project_is_approved = factor(project_is_approved, levels = truth_levels))
+
+
 ```
 
 ```{r}
@@ -268,7 +266,8 @@ Apply your `model_2` fitted model to the test data and display a histogram of th
 predicted_points_2 <- model_2 %>%
   broom::augment(newdata = test)
 predicted_points_2 <- predicted_points_2%>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+  mutate(fitted_prob = 1/(1 + exp(-.fitted)))%>%
+  select(teacher_number_of_previously_posted_projects,fitted_prob)
 predicted_points_2
 ```
 Histogram of the predicted probabilities 
@@ -295,6 +294,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 
 ![](score_screenshot_rfts.png){ width=100% }
 
+The estimated AUC is 0.5607127 as compared to the actual Kaggle score of 0.56522. These are very close!
 
 ## Plot ROC curve
 
@@ -326,18 +326,14 @@ model_3 <- glm(project_is_approved ~ project_grade_category, family = "binomial"
 # 2.b) Extract point-by-point info of points used to fit model
 fitted_points_logistic_3 <- model_3 %>%
   broom::augment()
-fitted_points_logistic_3
 
 # The .fitted values are the fitted log-odds however, NOT fitted probabilities.
 # We convert to fitted probabilities using inverse-logit function:
 fitted_points_logistic_3 <- fitted_points_logistic_3 %>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
+  select(project_is_approved,project_grade_category,fitted_prob)
        #y_hat = ifelse(fitted_prob>0.5, 1, 0))  #we don't need to set a threshold because we will fit it to all different thresholds in this case
 fitted_points_logistic_3
-
-# 2.c) Extract model summary info
-model_3 %>%
-  broom::glance()
 ```
 
 
@@ -366,7 +362,8 @@ Apply your `model_3` fitted model to the test data and display a histogram of th
 predicted_points_logistic_3 <- model_3 %>%
   broom::augment(newdata = test)
 predicted_points_logistic_3 <- predicted_points_logistic_3%>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted))) 
+  mutate(fitted_prob = 1/(1 + exp(-.fitted))) %>%
+  select(project_grade_category,fitted_prob)
 predicted_points_logistic_3
 ```
 Histogram of predicted probabilities for model 3
